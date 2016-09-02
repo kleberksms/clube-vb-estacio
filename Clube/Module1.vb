@@ -1,6 +1,6 @@
 ﻿Imports System.Text.RegularExpressions
 
-Module Module1
+Public Module Module1
 
 #Region "variable"
     Dim _reader As String
@@ -16,28 +16,48 @@ Module Module1
         _clube.Times = New List(Of Time)()
 
         Console.WriteLine("Olá, Bem vindo ao Clube do VBZão")
-        Init()
-        _reader = Console.ReadLine()
-
-        While (Not _reader.IsOpcaoInit())
-            Console.WriteLine("Não esta entre as opções")
+        Dim desejaAlgoAMais = True
+        While (desejaAlgoAMais)
             Init()
             _reader = Console.ReadLine()
+
+            While (Not _reader.IsOpcaoInit())
+                Console.WriteLine("Não esta entre as opções")
+                Init()
+                _reader = Console.ReadLine()
+            End While
+
+            _currentOption = Integer.Parse(_reader)
+
+            If (_currentOption.Equals(1)) Then
+                CadastarNovoSocio()
+                Console.WriteLine("Socio Cadastrado com sucesso")
+                Console.WriteLine(_clube.Socios.Last())
+            End If
+            If (_currentOption.Equals(2)) Then
+            End If
+            If (_currentOption.Equals(3)) Then
+            End If
+            If (_currentOption.Equals(4)) Then
+                Console.WriteLine(_clube.Socios.ToList().ToString())
+            End If
+
+            Console.WriteLine(Environment.NewLine)
+            Console.WriteLine("======================================")
+            Console.WriteLine(Environment.NewLine)
+            Console.WriteLine("Deseja Sair do Programa VBZão? sim/não")
+            _reader = Console.ReadLine()
+            If (SairDoPrograma(_reader)) Then
+                desejaAlgoAMais = False
+            End If
+            Console.Clear()
         End While
-
-        _currentOption = Integer.Parse(_reader)
-
-        If (_currentOption.Equals(1)) Then
-            CadastarNovoSocio()
-            Console.WriteLine("Socio Cadastrado com sucesso")
-            Console.WriteLine(_clube.Socios.Last())
-        End If
-        If (_currentOption.Equals(2)) Then
-        End If
-        If (_currentOption.Equals(3)) Then
-        End If
-
     End Sub
+
+    Public Function SairDoPrograma(desejaAlgoAMais As string) As Boolean
+        Return String.Equals(_reader, "sim", StringComparison.CurrentCultureIgnoreCase)
+    End Function
+
 #End Region
 
 #Region "Inicialização"
@@ -46,14 +66,13 @@ Module Module1
         Console.WriteLine("1 - Para novo sócio")
         Console.WriteLine("2 - Para alterar o cadastro do sócio")
         Console.WriteLine("3 - Para cadastrar um time")
+        Console.WriteLine("4 - Mostrar todos os sócios")
     End Sub
 
     <Runtime.CompilerServices.Extension>
     Public Function IsOpcaoInit(phrase As String) As Boolean
-        Return VerifyOptions(phrase, 1, 3)
+        Return VerifyOptions(phrase, 1, 4)
     End Function
-
-
 #End Region
 
 #Region "Novo Socio"
@@ -66,12 +85,11 @@ Module Module1
         Console.WriteLine("Informe o cpf:")
         Dim cpf = Console.ReadLine()
 
-        If (Not ParticipaDeAlgumEsporte()) Then
-            _clube.Socios.Add(New Socios(New NomeCompleto(nome, sobrenome), cpf, Nothing, Mensalidade.PlanoBasico))
+        If (ParticipaDeAlgumEsporte()) Then
+            _clube.Socios.Add(New Socios(New NomeCompleto(nome, sobrenome), cpf, DefineEsporte(), Mensalidade.PlanoBasico))
             Return
         End If
-
-        _clube.Socios.Add(New Socios(New NomeCompleto(nome, sobrenome), cpf, DefineEsporte(), Mensalidade.PlanoBasico))
+        _clube.Socios.Add(New Socios(New NomeCompleto(nome, sobrenome), cpf, Esporte.Nenhum, Mensalidade.PlanoBasico))
     End Sub
 
     Private Function DefineEsporte() As Esporte
@@ -89,7 +107,6 @@ Module Module1
         End If
 
         Return Esporte.Futebol
-
     End Function
 
     Public Sub EscolheuEsporte()
@@ -135,14 +152,11 @@ Module Module1
 End Module
 
 Public Class Clube
-
     Public Times As List(Of Time)
     Public Socios As List(Of Socios)
-
 End Class
 
 Public Class Time
-
     Public Property Id As Guid
     Public Property Nome As String
     Public Property Esporte As Esporte
@@ -154,6 +168,10 @@ Public Class Time
         Me.Esporte = esporte
     End Sub
 
+    '@todo deve ser um tipo especifico para receber
+    Public Function TotalNumeroEsportistas(tipo As String) As Integer
+        Return 1
+    End Function
 End Class
 
 Public Class Socios
@@ -176,11 +194,11 @@ Public Class Socios
 
     Public Overrides Function ToString() As String
         Dim concat = String.Empty
-        concat += String.Format("Socio: {0} {1}",Nome, Environment.NewLine)
-        concat += String.Format("Cadastrado em: {0} {1}",DataCadastro.ToString("dd/MM/yyyy"), Environment.NewLine)
-        concat += String.Format("CPF: {0} {1}",Cpf, Environment.NewLine)
-        concat += String.Format("Esporte: {0} {1}",Esporte, Environment.NewLine)
-        concat += String.Format("Modalidade da Mensalidade: {0} {1}",ModalidadeMensalidade, Environment.NewLine)
+        concat += String.Format("Socio: {0} {1}", Nome, Environment.NewLine)
+        concat += String.Format("Cadastrado em: {0} {1}", DataCadastro.ToString("dd/MM/yyyy"), Environment.NewLine)
+        concat += String.Format("CPF: {0} {1}", Cpf, Environment.NewLine)
+        concat += String.Format("Esporte: {0} {1}", Esporte, Environment.NewLine)
+        concat += String.Format("Modalidade da Mensalidade: {0} {1}", ModalidadeMensalidade, Environment.NewLine)
         Return concat
     End Function
 End Class
@@ -203,6 +221,7 @@ End Class
 Public Enum Esporte
     Natacao
     Futebol
+    Nenhum
 End Enum
 
 Public Class Incricao
@@ -218,7 +237,6 @@ Public Class Incricao
     End Sub
 
     Public Function IsValid() As Boolean
-
         If (Time.Esporte.Equals(Esporte.Natacao)) Then
             Return Valor.Equals(15)
         End If
@@ -226,9 +244,7 @@ Public Class Incricao
             Return Valor.Equals(15)
         End If
         Return False
-
     End Function
-
 End Class
 
 Public Class Pagamento
